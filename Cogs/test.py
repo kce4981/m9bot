@@ -16,6 +16,10 @@ class peko(m9cog.M9Cog):
     async def bar(self, ctx: commands.context):
         await ctx.send('foo')
 
+    @commands.command(name='peko')
+    async def peko(self, ctx):
+        self.logger.info(ctx.argv)
+        await ctx.channel.fetch_message(ctx.argv)
 
 def setup(bot):
     bot.add_cog(peko(bot))

@@ -1,1 +1,1 @@
-extensions = ['Cogs.test']
+extensions = ['Cogs.test', 'Cogs.loading']

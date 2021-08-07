@@ -1,6 +1,7 @@
 import logging
 
 logging.getLogger().setLevel(logging.INFO)
+
 discord_logger = logging.getLogger('discord')
 m9Bot_logger = logging.getLogger('m9bot')
 ch = logging.StreamHandler()
