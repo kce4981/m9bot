@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS Quotes (
     Message_author_id INT,
     Quote_creator_id INT,
     Message_content VARCHAR(1000),
-    Quote_time INT
+    Quote_time FLOAT
 );
 
