@@ -1,4 +1,6 @@
 /.idea/
 /venv/
+/Cogs/test.py
 token.json
 config.json
+/data/*.db

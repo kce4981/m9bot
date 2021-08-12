@@ -1,4 +1,8 @@
+import io
 import discord
+import requests
+from PIL import Image, ImageColor, ImageDraw
+
 from discord.ext import commands
 from . import m9cog
 
@@ -16,6 +20,11 @@ class quote(m9cog.M9Cog):
     async def quote(self, ctx):
         # https://discordpy.readthedocs.io/en/stable/api.html#discord.TextChannel.fetch_message
         # ctx.send(generated_image)
+        # <t:unix time:d>
+        self.generate_image()
+        pass
+
+    async def quote_test(self, ctx):
         self.generate_image()
         pass
 
@@ -30,6 +39,14 @@ class quote(m9cog.M9Cog):
         # https://discordpy.readthedocs.io/en/stable/api.html#deletedreferencedmessage
         pass
 
-    def generate_image(self):
-        # PIL ?
-        pass
+    @commands.command(name='avatar')
+    async def generate_image(self, ctx):
+        img = Image.open(requests.get(ctx.message.mentions[0].avatar_url, stream=True).raw)
+        img = img.resize((16,16), Image.ANTIALIAS)
+        # https://stackoverflow.com/questions/63209888/send-pillow-image-on-discord-without-saving-the-image
+        with io.BytesIO() as image_binary:
+            img.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            await ctx.send(file=discord.File(fp=image_binary, filename='image.png'))
+
+

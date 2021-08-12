@@ -1,4 +1,5 @@
 from discord.ext import commands
+import requests
 from . import m9cog
 
 
@@ -17,9 +18,17 @@ class peko(m9cog.M9Cog):
         await ctx.send('foo')
 
     @commands.command(name='peko')
-    async def peko(self, ctx):
-        self.logger.info(ctx.argv)
-        await ctx.channel.fetch_message(ctx.argv)
+    async def peko(self, ctx, arg):
+        self.log_usage(ctx)
+        message = await ctx.channel.fetch_message(arg)
+        await ctx.send('yeet', reference=message, mention_author=False)
+
+    @commands.command(name='del_test')
+    async def del_test(self, ctx, arg):
+        self.log_usage(ctx)
+        message = await ctx.channel.fetch_message(arg)
+        await ctx.send(message.reference)
+
 
 def setup(bot):
     bot.add_cog(peko(bot))

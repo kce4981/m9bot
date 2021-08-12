@@ -13,12 +13,20 @@ class Loading(m9cog.M9Cog):
     @commands.command(name='reload')
     @commands.is_owner()
     async def reload(self, ctx, arg):
-        self.logger.info(arg)
-        try:
-            self.bot.reload_extension(arg)
-        except (commands.ExtensionNotLoaded, commands.ExtensionNotFound, commands.NoEntryPointError, commands.ExtensionFailed) as e:
-            await ctx.send(f'Error: {e}')
-        else:
-            await ctx.send(f'{arg} load')
+        self.log_usage(ctx)
+        self.bot.reload_extension(f'Cogs.{arg}')
+        await ctx.send(f'"{arg}" > reloaded')
 
-        pass
+    @commands.command(name='disable')
+    @commands.is_owner()
+    async def disable(self, ctx, arg):
+        self.log_usage(ctx)
+        try:
+            self.bot.unload_extension(f'Cogs.{arg}')
+        except BaseException as e:
+            #await self.catch_error(ctx, e)
+            pass
+        else:
+            await ctx.send(f'"{arg}" > disabled')
+
+
