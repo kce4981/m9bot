@@ -62,7 +62,7 @@ class quote(m9cog.M9Cog):
             await ctx.send('no reference')
         else:
             quote_msg = await ctx.fetch_message(ctx.message.reference.message_id)
-            self.insert_db(quote_msg.id, quote_msg.author.id, ctx.author.id, quote_msg.content, ctx.message.created_at)
+            self.insert_db(quote_msg.id, quote_msg.author.id, ctx.author.id, quote_msg.content, quote_msg.created_at)
         pass
 
     @commands.is_owner()
