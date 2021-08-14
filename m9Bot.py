@@ -1,24 +1,33 @@
 import logging
+
+import discord
 from discord.ext.commands import Cog
 from Utils import logger
 from Utils.database import config
 from discord.ext import commands
 import Cogs.m9cog
 
+# add intents here
+intents = discord.Intents.default()
+intents.members = True
+
 
 class M9bot(commands.Bot):
 
     def __init__(self):
         self.logger = logging.getLogger('m9bot')
-        super().__init__(command_prefix=config.PREFIX)
+        super().__init__(command_prefix=config.PREFIX, intents=intents)
         for extension in Cogs.extensions:
             logger.m9Bot_logger.info(f'Loaded extension: {extension}')
             self.load_extension(extension)
 
-        # @self.check
-        # def banned_user(ctx):
-        #    to-do make ban system
-        #    pass
+        @self.check
+        def no_dm(ctx):
+            if isinstance(ctx.channel, discord.channel.DMChannel):
+                ctx.send('走開')
+                return False
+            else:
+                return True
 
     async def on_command_error(self, context, exception):
         if config.Debug:
