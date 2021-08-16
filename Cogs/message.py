@@ -1,6 +1,6 @@
 import io
 from typing import List
-
+import difflib
 import discord
 import requests
 from datetime import datetime, timezone
@@ -22,19 +22,44 @@ class quote(m9cog.M9Cog):
         super().__init__(bot)
         self.db = db(db_name='quote.db', sql_query='quote_db.sql')
 
-    @commands.command(name='viewquote')
-    async def viewquote(self, ctx, quote_id: int):
-        qte = self.select_quote(quote_id)[0]
-        if not qte:
-            ctx.send('quote does not exist')
-            return
-        else:
-            qte_target = ctx.guild.get_member(qte[1])
-            await self.send_image(ctx, self.generate_image(qte_target, qte[3], datetime.fromtimestamp(qte[4])))
+    @commands.command(name='search')
+    async def abc(self, ctx, msg: str):
 
-    # async def quote_test(self, ctx):
-    #     self.generate_image()
-    #     pass
+        def check(msg):
+            return msg.author == ctx.message.author and msg.channel == ctx.message.channel
+
+        self.db.curs.execute('SELECT * from Quotes')
+        rows = self.db.curs.fetchall()
+        rows = [list(x) for x in rows]
+        # calculate similarity
+        for qte in rows:
+            qte.append(difflib.SequenceMatcher(None, a=msg, b=qte[3]).ratio())
+        rows.sort(key=lambda x: x[5], reverse=True)
+        result = ''
+        similarity = ''
+        author = ''
+        for qte, i in zip(rows, range(0, 9)):
+            result += f'{qte[3]}\n'
+            similarity += '{:0.0%}\n'.format(qte[5])
+            member = ctx.guild.get_member(qte[1])
+            author += f'{member.display_name}#{member.discriminator}\n'
+        embed = discord.Embed()
+        embed.add_field(name='訊息',
+                        value=result, inline=True)
+        embed.add_field(name='相似度',
+                        value=similarity, inline=True)
+        embed.add_field(name='作者',
+                        value=author, inline=True)
+        embed_msg = await ctx.send(embed=embed)
+
+        try:
+            reply_index = await self.bot.wait_for('message', check=check, timeout=10)
+        except TimeoutError:
+            await embed_msg.delete()
+        else:
+            quote_msg_id = rows[int(reply_index.content) - 1][0]
+            await self.gen_send_image(ctx, quote_msg_id)
+            await embed_msg.delete()
 
     def insert_db(self, msg_id: int, msg_author_id: int, quote_creator_id: int, msg_content: str,
                   quote_timestamp: datetime):
@@ -63,13 +88,7 @@ class quote(m9cog.M9Cog):
         else:
             quote_msg = await ctx.fetch_message(ctx.message.reference.message_id)
             self.insert_db(quote_msg.id, quote_msg.author.id, ctx.author.id, quote_msg.content, quote_msg.created_at)
-        pass
-
-    @commands.is_owner()
-    @commands.command(name='validquote')
-    async def vaildquote(self, ctx):
-        # i think it's impossible, maybe delete?
-        pass
+            await self.gen_send_image(ctx, quote_msg.id)
 
     def generate_image(self, quote_target: discord.member, message: str, timestamp: datetime) -> Image:
 
@@ -107,7 +126,11 @@ class quote(m9cog.M9Cog):
 
         return bg_img
 
-    async def send_image(self, ctx, image: Image):
+    async def gen_send_image(self, ctx, quote_msg_id: int):
+        qte = self.select_quote(quote_msg_id)[0]
+        qte_target = ctx.guild.get_member(qte[1])
+        image = self.generate_image(qte_target, qte[3], datetime.fromtimestamp(qte[4]))
+
         # https://stackoverflow.com/questions/63209888/send-pillow-image-on-discord-without-saving-the-image
         with io.BytesIO() as image_binary:
             image.save(image_binary, 'PNG')
